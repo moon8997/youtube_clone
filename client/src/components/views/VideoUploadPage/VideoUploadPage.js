@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Typography, Button, Form, message, Input, Icon } from 'antd';
 import Dropzone from 'react-dropzone';
+import Axios from 'axios';
 
 const { TextArea } = Input;
 const { Title } = Typography;
@@ -11,7 +12,7 @@ const PrivateOptions = [
 ]
 
 const CategoryOptions = [
-    {value: 0, label: "Filem & Animation" },
+    {value: 0, label: "Film & Animation" },
     {value: 1, label: "Autos & Vehicles" },
     {value: 2, label: "Music" },
     {value: 3, label: "Pets & Animals" }
@@ -43,28 +44,51 @@ function VideoUploadPage() {
         setCategory(e.currentTarget.value)
     }
 
+    const onDrop = (files) => {
+        
+        let formData = new FormData();
+        const config = {
+            header: { 'content-type': 'multipart/form-data' }
+        }
+        console.log(files)
+        formData.append("file", files[0])
+
+        Axios.post('/api/video/uploadfiles', formData, config)
+            .then(response => {
+                if(response.data.success) {
+                    console.log(response.data)
+                } else{
+                    alert('비디오 업로드를 실패했습니다.')
+                }
+            })
+
+    }
+
+
     return (
         <div style={{ maxWidth:'700PX', margin:'2rem auto'}}>
             <div style={{ textAlign:'center', marginBottom:'2rem' }}>
-                <Title level={2}>Upload Video</Title>
+                <Title level={2}>동영상 업로드</Title>
             </div>
 
-            <Form   onSubmit>
+            <Form onSubmit>
                 <div style={{ display:'flex', justifyContent:'space-between' }}>
                     {/* Drop zone */}
                     <Dropzone
-                    onDrop
-                    multiple
-                    maxSize>
-                    {({ getRootProps, getInputProps }) => (
-                        <div style={{ width: '300px', height: '240px', border:'1px solid lightgray', display:'flex',
-                        alignItems:'center', justifyContent:'center'}} {...getRootProps()}>
-                            <input {...getInputProps()} />
-                            <Icon type="plus" style={{ fontSize:'3rem'}}></Icon>
-                        </div>
-                    )}
+                     onDrop={onDrop}
+                     multiple={false}
+                     maxSize={800000000}>
+                     {({ getRootProps, getInputProps }) => (
+                         <div style={{ width: '300px', height: '240px', border: '1px solid lightgray', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                             {...getRootProps()}
+                         >
+                             <input {...getInputProps()} />
+                             <Icon type="plus" style={{ fontSize: '3rem' }} />
 
-                    </Dropzone>
+                         </div>
+                     )}
+                 </Dropzone>
+
                     {/* Thumbnail */}
                     <div>
                         <img src alt />
@@ -87,7 +111,8 @@ function VideoUploadPage() {
                 />
                 <br />
                 <br />
-
+                
+                <label style={{marginRight: '5px'}}>공개범위 :</label>
                 <select onChange={onPrivateChange}>
                     {PrivateOptions.map((item, index) => (
                         <option key={index} value={item.value}>{item.label}</option>
@@ -96,6 +121,7 @@ function VideoUploadPage() {
                 <br />
                 <br />
 
+                <label style={{marginRight: '5px'}}>카테고리 :</label>     
                 <select onChange={onCategoryChange}>
                     {CategoryOptions.map((item, index) => (
                         <option key={index} value={item.value}>{item.label}</option>
