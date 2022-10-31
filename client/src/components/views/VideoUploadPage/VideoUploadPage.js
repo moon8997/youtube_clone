@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Typography, Button, Form, message, Input, Icon } from 'antd';
 import Dropzone from 'react-dropzone';
 import Axios from 'axios';
+import { useSelector } from 'react-redux';
 
 const { TextArea } = Input;
 const { Title } = Typography;
@@ -20,8 +21,9 @@ const CategoryOptions = [
 ]
 
 
-function VideoUploadPage() {
-
+function VideoUploadPage(props) {
+    const user = useSelector((state) => state.user);
+    
     const [VideoTitle, setVideoTitle] = useState("")
     const [Description, setDescription] = useState("")
     const [Private, setPrivate] = useState(0)
@@ -90,6 +92,37 @@ function VideoUploadPage() {
 
     }
 
+    const onSubmit = (e) => {
+        e.preventDefault();
+        
+        const variables = {
+            writer: user.userData._id,
+            title: VideoTitle,
+            description: Description,
+            privacy: Private,
+            filePath: FilePath,
+            category: Category,
+            duration: Duration,
+            thumbnail: ThumbnailPath
+        }
+
+        Axios.post('/api/video/uploadVideo', variables)
+            .then(response=> {
+                if(response.data.success) {
+                    // console.log(response.data)
+                    message.success('성공적으로 업로드를 했습니다.')
+
+                    setTimeout(() => {
+                        props.history.push('/')
+                    }, 3000);
+                    
+
+                } else {
+                    alert('비디오 업로드에 실패했습니다.')
+                }
+            })
+    }
+
 
     return (
         <div style={{ maxWidth:'700PX', margin:'2rem auto'}}>
@@ -97,7 +130,7 @@ function VideoUploadPage() {
                 <Title level={2}>동영상 업로드</Title>
             </div>
 
-            <Form onSubmit>
+            <Form onSubmit={onSubmit}>
                 <div style={{ display:'flex', justifyContent:'space-between' }}>
                     {/* Drop zone */}
                     <Dropzone
@@ -162,7 +195,7 @@ function VideoUploadPage() {
                 <br />
                 <br />
 
-                <Button type="primary" size="large" onClick>
+                <Button type="primary" size="large" onClick={onSubmit}>
                     Submit
                 </Button>
             </Form>
